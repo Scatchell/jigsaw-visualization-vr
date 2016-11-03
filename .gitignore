@@ -30,3 +30,6 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+# Ignore token class to avoid checking in
+Assets/AuthorizationToken.cs

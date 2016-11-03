@@ -22,7 +22,7 @@ public class GetShit : MonoBehaviour
 
 		request.Method = WebRequestMethods.Http.Get;
 		request.Accept = JSON_CONTENT_TYPE;
-		request.Headers ["Authorization"] = "f59ade505821a90237485b116dd3f519";
+		request.Headers ["Authorization"] = AuthorizationToken.Token();
 
 		var responseStream = request.GetResponse ().GetResponseStream ();
 		string jsonResponse = new StreamReader (responseStream).ReadToEnd ();
