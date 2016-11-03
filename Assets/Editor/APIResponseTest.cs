@@ -17,7 +17,7 @@ public class APIResponseTest
 			3.27f
 		};
 
-		var actualList = gs.MapToTwExperience (json);
+		var actualList = gs.MapToTwers (json);
 		Assert.AreEqual (expectedList, actualList);
 	}
 }
