@@ -33,8 +33,8 @@ public class GetShit : MonoBehaviour
 		listOfTwExperience.ForEach (e => {
 			GameObject sphere = (GameObject) Instantiate (personSphere, new Vector3 (0, position, 0), Quaternion.Euler (new Vector3 (0, 0, 0)));
 			sphere.transform.localScale = new Vector3 (e, e, e);
-			IEnumerator<Texture> list = GetTexture();
-
+//			IEnumerator<Texture> list = GetTexture();
+			ServicePointManager.ServerCertificateValidationCallback = AlwaysCorrect;
 
 
 			float force = Random.Range (0.0f, 0.3f);
@@ -50,16 +50,9 @@ public class GetShit : MonoBehaviour
 		//WWW www = new WWW("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester");
 	}
 
-	IEnumerator<Texture> GetTexture() {
-		UnityWebRequest www = UnityWebRequest.GetTexture("http://s3.amazonaws.com/thoughtworks-jigsaw-production/upload/consultants/images/18400/profile/picture.jpg?1432921008");
-		yield return www.Send();
-
-		if(www.isError) {
-			Debug.Log(www.error);
-		}
-		else {
-			Texture myTexture = ((DownloadHandlerTexture)www.downloadHandler).texture;
-		}
+	bool AlwaysCorrect (object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors sslPolicyErrors)
+	{
+		return true;
 	}
 
 	public IEnumerable<float> MapToTwExperience (string peopleJson)
