@@ -24,8 +24,9 @@ public class GetShit : MonoBehaviour
 		List<JSONNode> listOfTwers = MapToTwers (jsonResponse).ToList ();
 		List<JSONNode> secondListOfTwers = MapToTwers (secondJsonResponse).ToList ();
 
-		float lastPosition = CreateCubes (1.0f, listOfTwers);
-		CreateCubes (lastPosition, secondListOfTwers);
+		List<JSONNode> fullList = listOfTwers.Union (secondListOfTwers).ToList();
+		fullList.Sort( (p1,p2)=>p1 ["twExperience"].AsFloat.CompareTo(p2 ["twExperience"].AsFloat) );
+		float lastPosition = CreateCubes (1.0f, fullList);
 	}
 
 	private float CreateCubes (float initialPosition, List<JSONNode> listOfTwers)
@@ -37,6 +38,7 @@ public class GetShit : MonoBehaviour
 			float localPosition = (twExperience / 2) + position;
 			GameObject person = (GameObject)Instantiate (personSphere, new Vector3 (0, twExperience, localPosition), Quaternion.Euler (new Vector3 (0, 0, 0)));
 			person.GetComponent<Person> ().preferredName = e ["preferredName"].Value;
+			person.GetComponent<Person> ().experience = e ["twExperience"].Value;
 			person.transform.localScale = new Vector3 (twExperience, twExperience, twExperience);
 
 			string picture = e ["picture"] ["url"];
