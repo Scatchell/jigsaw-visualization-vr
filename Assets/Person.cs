@@ -9,15 +9,13 @@ public class Person : VRTK.VRTK_InteractableObject {
 	public override void StartUsing(GameObject usingObject)
 	{
 		base.StartUsing(usingObject);
-		nameText.text = preferredName + " - " + experience;
-		Debug.Log ("using");
+		nameText.text = preferredName + " - " + experience + " Yrs.";
 	}
 
 	public override void StopUsing(GameObject usingObject)
 	{
 		base.StartUsing(usingObject);
 		nameText.text = "";
-		Debug.Log ("Stop using");
 	}
 
 	// Use this for initialization

@@ -24,8 +24,8 @@ public class GetShit : MonoBehaviour
 		List<JSONNode> listOfTwers = MapToTwers (jsonResponse).ToList ();
 		List<JSONNode> secondListOfTwers = MapToTwers (secondJsonResponse).ToList ();
 
-		List<JSONNode> fullList = listOfTwers.Union (secondListOfTwers).ToList();
-		fullList.Sort( (p1,p2)=>p1 ["twExperience"].AsFloat.CompareTo(p2 ["twExperience"].AsFloat) );
+		List<JSONNode> fullList = listOfTwers.Union (secondListOfTwers).ToList ();
+		fullList.Sort ((p1, p2) => p1 ["twExperience"].AsFloat.CompareTo (p2 ["twExperience"].AsFloat));
 		float lastPosition = CreateCubes (1.0f, fullList);
 	}
 
@@ -48,7 +48,7 @@ public class GetShit : MonoBehaviour
 			float force2 = Random.Range (0.0f, 0.3f);
 			//person.GetComponent<Rigidbody> ().AddForce (new Vector3 (force, 0, force2));
 
-			position += twExperience + 0.1f;
+			position += twExperience;
 		});
 
 		return position;
@@ -58,7 +58,7 @@ public class GetShit : MonoBehaviour
 	{
 		string[] number = picture.Split ('/');
 		string url = "http://s3.amazonaws.com/thoughtworks-jigsaw-production/upload/consultants/images/" + number [4] + "/profile/picture.jpg";
-		StartCoroutine (ApplyTexture (url, person));
+		StartCoroutine (ApplyTexture (url, person, 0));
 	}
 
 	static string CreateJigsawRequest (string url)
@@ -73,11 +73,12 @@ public class GetShit : MonoBehaviour
 		return jsonResponse;
 	}
 
-	IEnumerator ApplyTexture (string url, GameObject gameObject)
+	IEnumerator ApplyTexture (string url, GameObject gameObject, int attempts)
 	{
 		UnityWebRequest www = UnityWebRequest.GetTexture (url);
 		www.SetRequestHeader ("Accept", "image/*");
-		Debug.Log ("Downloading...");
+		//Debug.Log ("Downloading...");
+		//Debug.Log (url);
 		yield return www.Send ();
 
 		while (!www.isDone) {
@@ -88,6 +89,24 @@ public class GetShit : MonoBehaviour
 			yield return null;
 
 		} else {
+			long forbidden = 403;
+			long responseCode = www.responseCode;
+			if (responseCode == forbidden && attempts == 0) {
+				StartCoroutine (ApplyTexture (url.Replace (".jpg", ".png"), gameObject, 1));
+				yield return null;
+			} else if (responseCode == forbidden && attempts == 1) {
+				StartCoroutine (ApplyTexture (url.Replace (".png", ".JPG"), gameObject, 2));
+				yield return null;
+			} else if (responseCode == forbidden && attempts == 2) {
+				StartCoroutine (ApplyTexture (url.Replace (".JPG", ".jpeg"), gameObject, 3));
+				yield return null;
+			} else if (responseCode == forbidden && attempts == 3) {
+				StartCoroutine (ApplyTexture (url.Replace (".jpeg", ".JPEG"), gameObject, 4));
+				yield return null;
+			} else if (responseCode == forbidden && attempts == 4) {
+				StartCoroutine (ApplyTexture (url.Replace (".JPEG", ".PNG"), gameObject, 5));
+				yield return null;
+			}
 			Texture myTexture = ((DownloadHandlerTexture)www.downloadHandler).texture;
 			gameObject.GetComponent<Renderer> ().materials [0].mainTexture = myTexture;
 			yield return null;
