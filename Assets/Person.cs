@@ -23,5 +23,6 @@ public class Person : VRTK.VRTK_InteractableObject {
 	void Start () {
 		base.Start ();
 		nameText = GameObject.Find ("NameText").GetComponent<TextMesh>();
+		gameObject.transform.FindChild ("SnapPoint").localPosition = new Vector3(0, gameObject.transform.lossyScale.y / 2, gameObject.transform.lossyScale.y / 2);
 	}
 }

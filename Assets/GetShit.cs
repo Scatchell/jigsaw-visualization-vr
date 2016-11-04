@@ -24,33 +24,39 @@ public class GetShit : MonoBehaviour
 		List<JSONNode> listOfTwers = MapToTwers (jsonResponse).ToList ();
 		List<JSONNode> secondListOfTwers = MapToTwers (secondJsonResponse).ToList ();
 
-		CreateCubes (listOfTwers);
-		CreateCubes (secondListOfTwers);
-
-		//WWW www = new WWW("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester");
+		float lastPosition = CreateCubes (1.0f, listOfTwers);
+		CreateCubes (lastPosition, secondListOfTwers);
 	}
 
-	void CreateCubes (List<JSONNode> listOfTwers)
+	private float CreateCubes (float initialPosition, List<JSONNode> listOfTwers)
 	{
-		float position = 1f;
-		listOfTwers.ForEach (e =>  {
-			GameObject sphere = (GameObject)Instantiate (personSphere, new Vector3 (0, position, 0), Quaternion.Euler (new Vector3 (0, 0, 0)));
-			sphere.GetComponent<Person>().preferredName = e ["preferredName"].Value;
+		float position = initialPosition;
+		float lastTwExperience = 0;
+		listOfTwers.ForEach (e => {
 			float twExperience = e ["twExperience"].AsFloat;
-			float logTWExp = twExperience;
-			sphere.transform.localScale = new Vector3 (logTWExp, logTWExp, logTWExp);
-			//			IEnumerator<Texture> list = GetTexture();
-			ServicePointManager.ServerCertificateValidationCallback = AlwaysCorrect;
+			float localPosition = (twExperience / 2) + position;
+			GameObject person = (GameObject)Instantiate (personSphere, new Vector3 (0, twExperience, localPosition), Quaternion.Euler (new Vector3 (0, 0, 0)));
+			person.GetComponent<Person> ().preferredName = e ["preferredName"].Value;
+			person.transform.localScale = new Vector3 (twExperience, twExperience, twExperience);
+
 			string picture = e ["picture"] ["url"];
-			string[] number = picture.Split ('/');
-			string url = "http://s3.amazonaws.com/thoughtworks-jigsaw-production/upload/consultants/images/" + number [4] + "/profile/picture.jpg";
-			logger.Log (url);
-			StartCoroutine (GetTexture (url, sphere));
+			AttachPictureToPerson (person, picture);
+
 			float force = Random.Range (0.0f, 0.3f);
 			float force2 = Random.Range (0.0f, 0.3f);
-			sphere.GetComponent<Rigidbody> ().AddForce (new Vector3 (force, 0, force2));
+			//person.GetComponent<Rigidbody> ().AddForce (new Vector3 (force, 0, force2));
+
 			position += twExperience + 0.1f;
 		});
+
+		return position;
+	}
+
+	private void AttachPictureToPerson (GameObject person, string picture)
+	{
+		string[] number = picture.Split ('/');
+		string url = "http://s3.amazonaws.com/thoughtworks-jigsaw-production/upload/consultants/images/" + number [4] + "/profile/picture.jpg";
+		StartCoroutine (ApplyTexture (url, person));
 	}
 
 	static string CreateJigsawRequest (string url)
@@ -58,30 +64,30 @@ public class GetShit : MonoBehaviour
 		HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create (url);
 		request.Method = WebRequestMethods.Http.Get;
 		request.Accept = JSON_CONTENT_TYPE;
-		request.Headers ["Authorization"] = AuthorizationToken.Token();
+		request.Headers ["Authorization"] = AuthorizationToken.Token ();
 		var responseStream = request.GetResponse ().GetResponseStream ();
 		string jsonResponse = new StreamReader (responseStream).ReadToEnd ();
 		logger.Log (jsonResponse);
 		return jsonResponse;
 	}
 
-	IEnumerator GetTexture(string url, GameObject gameObject) {
+	IEnumerator ApplyTexture (string url, GameObject gameObject)
+	{
 		UnityWebRequest www = UnityWebRequest.GetTexture (url);
 		www.SetRequestHeader ("Accept", "image/*");
-		Debug.Log("Downloading...");
-		yield return www.Send();
+		Debug.Log ("Downloading...");
+		yield return www.Send ();
 
-		while (!www.isDone){
-			Debug.LogError("Error!");
+		while (!www.isDone) {
+			Debug.LogError ("Error!");
 		}
-		if(www.isError) {
-			logger.Log(LogType.Error,www.error);
+		if (www.isError) {
+			logger.Log (LogType.Error, www.error);
 			yield return null;
 
-		}
-		else {
+		} else {
 			Texture myTexture = ((DownloadHandlerTexture)www.downloadHandler).texture;
-			gameObject.GetComponent<Renderer>().materials[0].mainTexture = myTexture;
+			gameObject.GetComponent<Renderer> ().materials [0].mainTexture = myTexture;
 			yield return null;
 		}
 	
