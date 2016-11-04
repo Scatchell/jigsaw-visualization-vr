@@ -23,7 +23,11 @@ public class Person : VRTK.VRTK_InteractableObject {
 	// Use this for initialization
 	void Start () {
 		base.Start ();
-		nameText = gameObject.transform.FindChild ("NameText").gameObject.GetComponent<TextMesh>();
-		gameObject.transform.FindChild ("NameText").localPosition = new Vector3(0, 0.6f, 0);
+
+		GameObject nameTextGameObject = VRTK.VRTK_DeviceFinder.GetControllerRightHand().transform.FindChild("NameText").gameObject;
+
+		nameText = nameTextGameObject.GetComponent<TextMesh>();
+
+		nameTextGameObject.transform.localPosition = new Vector3(0, 0.1f, 0);
 	}
 }
