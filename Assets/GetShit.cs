@@ -18,42 +18,51 @@ public class GetShit : MonoBehaviour
 	void Start ()
 	{
 		ServicePointManager.ServerCertificateValidationCallback = AlwaysCorrect;
-		HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create ("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester");
+		var jsonResponse = CreateJigsawRequest ("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester");
+		var secondJsonResponse = CreateJigsawRequest ("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester&page=2");
 
+		List<JSONNode> listOfTwers = MapToTwers (jsonResponse).ToList ();
+		List<JSONNode> secondListOfTwers = MapToTwers (secondJsonResponse).ToList ();
+
+		CreateCubes (listOfTwers);
+		CreateCubes (secondListOfTwers);
+
+		//WWW www = new WWW("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester");
+	}
+
+	void CreateCubes (List<JSONNode> listOfTwers)
+	{
+		float position = 1f;
+		listOfTwers.ForEach (e =>  {
+			GameObject sphere = (GameObject)Instantiate (personSphere, new Vector3 (0, position, 0), Quaternion.Euler (new Vector3 (0, 0, 0)));
+			sphere.GetComponent<Person>().preferredName = e ["preferredName"].Value;
+			float twExperience = e ["twExperience"].AsFloat;
+			float logTWExp = twExperience;
+			sphere.transform.localScale = new Vector3 (logTWExp, logTWExp, logTWExp);
+			//			IEnumerator<Texture> list = GetTexture();
+			ServicePointManager.ServerCertificateValidationCallback = AlwaysCorrect;
+			string picture = e ["picture"] ["url"];
+			string[] number = picture.Split ('/');
+			string url = "http://s3.amazonaws.com/thoughtworks-jigsaw-production/upload/consultants/images/" + number [4] + "/profile/picture.jpg";
+			logger.Log (url);
+			StartCoroutine (GetTexture (url, sphere));
+			float force = Random.Range (0.0f, 0.3f);
+			float force2 = Random.Range (0.0f, 0.3f);
+			sphere.GetComponent<Rigidbody> ().AddForce (new Vector3 (force, 0, force2));
+			position += twExperience + 0.1f;
+		});
+	}
+
+	static string CreateJigsawRequest (string url)
+	{
+		HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create (url);
 		request.Method = WebRequestMethods.Http.Get;
 		request.Accept = JSON_CONTENT_TYPE;
 		request.Headers ["Authorization"] = AuthorizationToken.Token();
-
 		var responseStream = request.GetResponse ().GetResponseStream ();
 		string jsonResponse = new StreamReader (responseStream).ReadToEnd ();
 		logger.Log (jsonResponse);
-
-		List<JSONNode> listOfTwers = MapToTwers (jsonResponse).ToList ();
-
-
-		float position = 1f;
-		listOfTwers.ForEach (e => {
-			GameObject sphere = (GameObject) Instantiate (personSphere, new Vector3 (0, position, 0), Quaternion.Euler (new Vector3 (0, 0, 0)));
-			float twExperience = e["twExperience"].AsFloat;
-			sphere.transform.localScale = new Vector3 (twExperience, twExperience, twExperience);
-//			IEnumerator<Texture> list = GetTexture();
-			ServicePointManager.ServerCertificateValidationCallback = AlwaysCorrect;
-
-			string picture = e["picture"]["url"];
-			string[] number = picture.Split('/');
-
-			string url = "http://s3.amazonaws.com/thoughtworks-jigsaw-production/upload/consultants/images/" + number[4] + "/profile/picture.jpg";
-			logger.Log(url);
-			StartCoroutine(GetTexture(url, sphere));
-
-			float force = Random.Range (0.0f, 0.3f);
-			float force2 = Random.Range (0.0f, 0.3f);
-			sphere.GetComponent<Rigidbody>().AddForce(new Vector3(force, 0, force2));
-			position += twExperience + 0.1f;
-
-		});
-
-		//WWW www = new WWW("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester");
+		return jsonResponse;
 	}
 
 	IEnumerator GetTexture(string url, GameObject gameObject) {
@@ -63,7 +72,7 @@ public class GetShit : MonoBehaviour
 		yield return www.Send();
 
 		while (!www.isDone){
-			Debug.LogError(".");
+			Debug.LogError("Error!");
 		}
 		if(www.isError) {
 			logger.Log(LogType.Error,www.error);
