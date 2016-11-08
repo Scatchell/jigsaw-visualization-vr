@@ -12,6 +12,7 @@ public class GetShit : MonoBehaviour
 {
 	const string JSON_CONTENT_TYPE = "application/json";
 	public GameObject personSphere;
+	public GameObject personTower;
 	private static ILogger logger = Debug.logger;
 
 	// Use this for initialization
@@ -35,14 +36,25 @@ public class GetShit : MonoBehaviour
 		float lastTwExperience = 0;
 		listOfTwers.ForEach (e => {
 			float twExperience = e ["twExperience"].AsFloat;
+			float totalExperience = e ["totalExperience"].AsFloat;
 			float localPosition = (twExperience / 2) + position;
-			GameObject person = (GameObject)Instantiate (personSphere, new Vector3 (0, twExperience, localPosition), Quaternion.Euler (new Vector3 (0, 0, 0)));
-			person.GetComponent<Person> ().preferredName = e ["preferredName"].Value;
-			person.GetComponent<Person> ().experience = e ["twExperience"].Value;
+
+			GameObject tower = (GameObject) Instantiate(personTower, new Vector3(0, totalExperience, localPosition), Quaternion.identity);
+			tower.transform.localScale = Vector3.Scale(tower.transform.localScale, new Vector3(1, totalExperience, 1));
+
+
+			GameObject personCube = (GameObject)Instantiate (personSphere, new Vector3 (0, tower.transform.position.y * 2, localPosition), Quaternion.identity);
+
+
+			Person person = personCube.GetComponent<Person> ();
+			person.preferredName = e ["preferredName"].Value;
+			person.experience = e ["twExperience"].Value;
+			person.totalExperience = e["totalExperience"].Value;
+
 			person.transform.localScale = new Vector3 (twExperience, twExperience, twExperience);
 
 			string picture = e ["picture"] ["url"];
-			AttachPictureToPerson (person, picture);
+			AttachPictureToPerson (personCube, picture);
 
 			float force = Random.Range (0.0f, 0.3f);
 			float force2 = Random.Range (0.0f, 0.3f);
