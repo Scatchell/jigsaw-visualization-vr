@@ -36,7 +36,7 @@ public class GetShit : MonoBehaviour
 		float lastTwExperience = 0;
 		listOfTwers.ForEach (e => {
 			float twExperience = e ["twExperience"].AsFloat;
-			float totalExperience = 1 + (e ["totalExperience"].AsFloat * .5f);
+			float totalExperience = e ["totalExperience"].AsFloat * .5f;
 			float localPosition = (twExperience / 2) + position;
 
 			GameObject tower = (GameObject) Instantiate(personTower, new Vector3(0, totalExperience, localPosition), Quaternion.identity);
