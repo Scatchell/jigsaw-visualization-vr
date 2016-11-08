@@ -33,3 +33,6 @@ sysinfo.txt
 
 # Ignore token class to avoid checking in
 Assets/AuthorizationToken.cs
+
+# Mac guff
+.DS_Store
