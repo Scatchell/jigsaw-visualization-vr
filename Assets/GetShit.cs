@@ -19,46 +19,41 @@ public class GetShit : MonoBehaviour
 	void Start ()
 	{
 		ServicePointManager.ServerCertificateValidationCallback = AlwaysCorrect;
-		var jsonResponse = CreateJigsawRequest ("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester");
-		var secondJsonResponse = CreateJigsawRequest ("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester&page=2");
 
-		List<JSONNode> listOfTwers = MapToTwers (jsonResponse).ToList ();
-		List<JSONNode> secondListOfTwers = MapToTwers (secondJsonResponse).ToList ();
-
-		List<JSONNode> fullList = listOfTwers.Union (secondListOfTwers).ToList ();
+		List<JSONNode> fullList = 
+			getPeopleOnPage (1).Union (getPeopleOnPage (2)).ToList ();
+		
 		fullList.Sort ((p1, p2) => p1 ["twExperience"].AsFloat.CompareTo (p2 ["twExperience"].AsFloat));
 		float lastPosition = CreateCubes (1.0f, fullList);
+	}
+
+	private List<JSONNode> getPeopleOnPage(int page) {
+		return  MapToTwers (CreateJigsawRequest ("https://jigsaw.thoughtworks.net/api/people\\?staffing_office=Manchester&page=" + page)).ToList();
 	}
 
 	private float CreateCubes (float initialPosition, List<JSONNode> listOfTwers)
 	{
 		float position = initialPosition;
-		float lastTwExperience = 0;
 		listOfTwers.ForEach (e => {
 			float twExperience = e ["twExperience"].AsFloat;
 			float totalExperience = e ["totalExperience"].AsFloat * .5f;
-			float localPosition = (twExperience / 2) + position;
+			float personPosition = (twExperience / 2) + position;
 
-			GameObject tower = (GameObject) Instantiate(personTower, new Vector3(0, totalExperience, localPosition), Quaternion.identity);
+			GameObject tower = (GameObject) Instantiate(personTower, new Vector3(0, totalExperience, personPosition), Quaternion.identity);
 			tower.transform.localScale = Vector3.Scale(tower.transform.localScale, new Vector3(1, totalExperience, 1));
 
-
-			GameObject personCube = (GameObject)Instantiate (personSphere, new Vector3 (0, tower.transform.position.y * 2 + (twExperience * 0.5f), localPosition), Quaternion.identity);
-
+			float topOfTheTower = tower.transform.position.y * 2;
+			float halfOfTheCube = twExperience * 0.5f;
+			GameObject personCube = (GameObject)Instantiate (personSphere, new Vector3 (0, topOfTheTower + halfOfTheCube, personPosition), Quaternion.identity);
+			personCube.transform.localScale = new Vector3 (twExperience, twExperience, twExperience);
 
 			Person person = personCube.GetComponent<Person> ();
 			person.preferredName = e ["preferredName"].Value;
 			person.experience = e ["twExperience"].Value;
 			person.totalExperience = e["totalExperience"].Value;
 
-			person.transform.localScale = new Vector3 (twExperience, twExperience, twExperience);
-
 			string picture = e ["picture"] ["url"];
 			AttachPictureToPerson (personCube, picture);
-
-			float force = Random.Range (0.0f, 0.3f);
-			float force2 = Random.Range (0.0f, 0.3f);
-			//person.GetComponent<Rigidbody> ().AddForce (new Vector3 (force, 0, force2));
 
 			position += twExperience;
 		});
