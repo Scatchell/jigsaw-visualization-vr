@@ -36,14 +36,14 @@ public class GetShit : MonoBehaviour
 		float lastTwExperience = 0;
 		listOfTwers.ForEach (e => {
 			float twExperience = e ["twExperience"].AsFloat;
-			float totalExperience = e ["totalExperience"].AsFloat;
+			float totalExperience = 1 + (e ["totalExperience"].AsFloat * .5f);
 			float localPosition = (twExperience / 2) + position;
 
 			GameObject tower = (GameObject) Instantiate(personTower, new Vector3(0, totalExperience, localPosition), Quaternion.identity);
 			tower.transform.localScale = Vector3.Scale(tower.transform.localScale, new Vector3(1, totalExperience, 1));
 
 
-			GameObject personCube = (GameObject)Instantiate (personSphere, new Vector3 (0, tower.transform.position.y * 2, localPosition), Quaternion.identity);
+			GameObject personCube = (GameObject)Instantiate (personSphere, new Vector3 (0, tower.transform.position.y * 2 + (twExperience * 0.5f), localPosition), Quaternion.identity);
 
 
 			Person person = personCube.GetComponent<Person> ();
